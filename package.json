@@ -1,0 +1,56 @@
+{
+    "name": "chrome-devtools-kit",
+    "version": "0.1.0",
+    "description": "Build custom Chrome DevTools panels and sidebars — panel lifecycle management, inspected page communication, network interception, and theme matching.",
+    "author": "Zovo <hello@zovo.one>",
+    "license": "MIT",
+    "keywords": [
+        "chrome-devtools",
+        "devtools-extension",
+        "devtools-panel",
+        "chrome-extension",
+        "devtools-sidebar",
+        "chrome-devtools-api",
+        "manifest-v3",
+        "browser-extension",
+        "devtools",
+        "inspector"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/theluckystrike/chrome-devtools-kit.git"
+    },
+    "homepage": "https://github.com/theluckystrike/chrome-devtools-kit",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "files": [
+        "dist",
+        "README.md",
+        "LICENSE"
+    ],
+    "scripts": {
+        "build": "tsc",
+        "dev": "tsc --watch",
+        "test": "jest",
+        "lint": "eslint src --ext .ts",
+        "prepublishOnly": "npm run build"
+    },
+    "peerDependencies": {
+        "@types/chrome": ">=0.0.200"
+    },
+    "peerDependenciesMeta": {
+        "@types/chrome": {
+            "optional": true
+        }
+    },
+    "devDependencies": {
+        "@types/chrome": "^0.0.260",
+        "@types/jest": "^29.5.12",
+        "@typescript-eslint/eslint-plugin": "^6.19.1",
+        "@typescript-eslint/parser": "^6.19.1",
+        "eslint": "^8.56.0",
+        "jest": "^29.7.0",
+        "ts-jest": "^29.1.2",
+        "typescript": "^5.3.3"
+    }
+}
