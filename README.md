@@ -1,8 +1,15 @@
 # chrome-devtools-kit
 
+[![npm version](https://img.shields.io/npm/v/chrome-devtools-kit)](https://npmjs.com/package/chrome-devtools-kit)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue.svg)](https://www.typescriptlang.org/)
+[![Discord](https://img.shields.io/badge/Discord-Zovo-blueviolet.svg?logo=discord)](https://discord.gg/zovo)
+[![Website](https://img.shields.io/badge/Website-zovo.one-blue)](https://zovo.one)
+[![GitHub Stars](https://img.shields.io/github/stars/theluckystrike/chrome-devtools-kit?style=social)](https://github.com/theluckystrike/chrome-devtools-kit)
+
 > Build custom Chrome DevTools panels and sidebars -- panel lifecycle management, inspected page communication, network interception, and theme matching.
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+Part of the [Zovo](https://zovo.one) developer tools family.
 
 ## Install
 
@@ -203,3 +210,23 @@ DevToolsTheme.onThemeChange((theme) => {
 ## License
 
 MIT
+
+## See Also
+
+- [chrome-extension-core](https://github.com/theluckystrike/chrome-extension-core) - Essential utilities for Chrome extension development
+- [chrome-extension-testing](https://github.com/theluckystrike/chrome-extension-testing) - Testing utilities for Chrome extensions
+- [awesome-chrome-devtools](https://github.com/theluckystrike/awesome-chrome-devtools) - Awesome tooling and resources in the Chrome DevTools ecosystem
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+---
+
+Built by [Zovo](https://zovo.one)
