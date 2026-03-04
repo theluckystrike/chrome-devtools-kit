@@ -227,6 +227,8 @@ MIT
 
 Visit [zovo.one](https://zovo.one) for more information.
 
+## Contributing
+
 Contributions are welcome! Please feel free to submit a Pull Request.
 
 1. Fork the repository
