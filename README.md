@@ -213,11 +213,19 @@ MIT
 
 ## See Also
 
+### Related Zovo Repositories
+
 - [chrome-extension-core](https://github.com/theluckystrike/chrome-extension-core) - Essential utilities for Chrome extension development
 - [chrome-extension-testing](https://github.com/theluckystrike/chrome-extension-testing) - Testing utilities for Chrome extensions
 - [awesome-chrome-devtools](https://github.com/theluckystrike/awesome-chrome-devtools) - Awesome tooling and resources in the Chrome DevTools ecosystem
+- [chrome-extension-starter-mv3](https://github.com/theluckystrike/chrome-extension-starter-mv3) - Production-ready Chrome extension starter
 
-## Contributing
+### Zovo Chrome Extensions
+
+- [Zovo Tab Manager](https://chrome.google.com/webstore/detail/zovo-tab-manager) - Manage tabs efficiently
+- [Zovo Focus](https://chrome.google.com/webstore/detail/zovo-focus) - Block distractions
+
+Visit [zovo.one](https://zovo.one) for more information.
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
