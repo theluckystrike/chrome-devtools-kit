@@ -3,74 +3,98 @@
 [![npm version](https://img.shields.io/npm/v/chrome-devtools-kit)](https://npmjs.com/package/chrome-devtools-kit)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue.svg)](https://www.typescriptlang.org/)
-[![Discord](https://img.shields.io/badge/Discord-Zovo-blueviolet.svg?logo=discord)](https://discord.gg/zovo)
-[![Website](https://img.shields.io/badge/Website-zovo.one-blue)](https://zovo.one)
 [![GitHub Stars](https://img.shields.io/github/stars/theluckystrike/chrome-devtools-kit?style=social)](https://github.com/theluckystrike/chrome-devtools-kit)
 
-> Build custom Chrome DevTools panels and sidebars -- panel lifecycle management, inspected page communication, network interception, and theme matching.
+A small TypeScript library for building custom Chrome DevTools panels and sidebars. Handles panel lifecycle, inspected-page communication, network request capture, and theme matching so you can focus on the UI.
 
-Part of the [Zovo](https://zovo.one) developer tools family.
+Designed for Manifest V3 extensions. Wraps the raw chrome.devtools API in clean async methods and typed return values.
 
-## Install
+
+INSTALL
 
 ```bash
 npm install chrome-devtools-kit
 ```
 
-Peer dependency: `@types/chrome >= 0.0.200` (optional, for TypeScript users).
+Optional peer dependency for TypeScript users: @types/chrome >= 0.0.200
 
-## Usage
 
-### Create a DevTools Panel
+EXPORTS
+
+```typescript
+import {
+  DevToolsPanel,
+  DevToolsSidebar,
+  InspectedPage,
+  NetworkInterceptor,
+  DevToolsTheme,
+} from 'chrome-devtools-kit';
+```
+
+The library ships five modules. Each one is described below with real usage pulled straight from the source.
+
+
+DEVTOOLS PANEL
+
+Create and manage custom panels in Chrome DevTools.
 
 ```typescript
 import { DevToolsPanel } from 'chrome-devtools-kit';
 
-// Basic panel
+// Create a basic panel
 const panel = await DevToolsPanel.create({
   title: 'My Panel',
   pagePath: 'panel.html',
   iconPath: 'icons/panel-16.png',
 });
 
-// Panel with lifecycle callbacks
+// Create a panel with show/hide lifecycle hooks
 const panel = await DevToolsPanel.createWithLifecycle({
   title: 'My Panel',
   pagePath: 'panel.html',
-  onShow: (window) => {
-    console.log('Panel shown', window);
-  },
-  onHide: () => {
-    console.log('Panel hidden');
-  },
+  onShow: (window) => console.log('Panel visible', window),
+  onHide: () => console.log('Panel hidden'),
 });
+
+// Evaluate an expression in the inspected page
+const className = await DevToolsPanel.evaluate<string>('document.body.className');
+
+// Get the inspected tab ID
+const tabId = DevToolsPanel.getInspectedTabId();
 ```
 
-### Add a Sidebar to the Elements Panel
+PanelOptions accepts title (string), pagePath (string), and an optional iconPath (string).
+
+
+DEVTOOLS SIDEBAR
+
+Add sidebar panes to the Elements panel.
 
 ```typescript
 import { DevToolsSidebar } from 'chrome-devtools-kit';
 
-// Sidebar that evaluates an expression on the selected element
-const sidebar = await DevToolsSidebar.createWithExpression(
-  'Element Info',
-  '$0.dataset'
-);
+// Bare sidebar pane
+const sidebar = await DevToolsSidebar.create('My Sidebar');
 
-// Sidebar that shows a custom page
-const sidebar = await DevToolsSidebar.createWithPage(
-  'Properties',
-  'sidebar.html'
-);
+// Sidebar that evaluates an expression against the selected element
+const sidebar = await DevToolsSidebar.createWithExpression('Element Info', '$0.dataset');
 
-// Sidebar that displays an object
-const sidebar = await DevToolsSidebar.createWithObject(
-  'Debug Data',
-  { version: '1.0.0', env: 'production' }
-);
+// Sidebar that renders a custom HTML page
+const sidebar = await DevToolsSidebar.createWithPage('Properties', 'sidebar.html');
+
+// Sidebar that displays an object tree
+const sidebar = await DevToolsSidebar.createWithObject('Debug Data', {
+  version: '1.0.0',
+  env: 'production',
+});
 ```
 
-### Communicate with the Inspected Page
+All four methods return a Promise containing a chrome ExtensionSidebarPane.
+
+
+INSPECTED PAGE
+
+Query and control the page being inspected without leaving your DevTools context.
 
 ```typescript
 import { InspectedPage } from 'chrome-devtools-kit';
@@ -82,17 +106,22 @@ const cookies = await InspectedPage.getCookies();
 const storageSize = await InspectedPage.getLocalStorageSize();
 const metaTags = await InspectedPage.getMetaTags();
 
-// Evaluate arbitrary expressions
+// Run any expression
 const result = await InspectedPage.eval<string>('document.body.className');
 
-// Reload the inspected page
-InspectedPage.reload({ ignoreCache: true });
+// Reload with cache bypass and optional injected script
+InspectedPage.reload({ ignoreCache: true, injectedScript: 'console.log("hi")' });
 
-// Get the inspected tab ID
+// Tab ID
 const tabId = InspectedPage.getTabId();
 ```
 
-### Monitor Network Requests
+getMetaTags returns an array of { name, content } objects covering both name and property attributes on meta elements.
+
+
+NETWORK INTERCEPTOR
+
+Capture and query finished network requests inside DevTools.
 
 ```typescript
 import { NetworkInterceptor } from 'chrome-devtools-kit';
@@ -100,143 +129,83 @@ import { NetworkInterceptor } from 'chrome-devtools-kit';
 const network = new NetworkInterceptor();
 network.start();
 
-// Listen for each finished request
+// Subscribe to each finished request
 const unsubscribe = network.onRequest((entry) => {
   console.log(`${entry.method} ${entry.url} -- ${entry.status} (${entry.time}ms)`);
 });
 
 // Query captured entries
-const allEntries = network.getEntries();
-const slowRequests = network.getSlow(1000);         // requests > 1000ms
-const scripts = network.getByType('javascript');     // filter by MIME type
-const filtered = network.filter((e) => e.status >= 400); // custom filter
+const all = network.getEntries();
+const slow = network.getSlow(1000);
+const scripts = network.getByType('javascript');
+const errors = network.filter((e) => e.status >= 400);
 const totalBytes = network.getTotalSize();
 
-// Clean up
+// Cleanup
 unsubscribe();
 network.clear();
 ```
 
-### Match the DevTools Theme
+NetworkEntry shape: { url, method, status, type, size, time, startedAt }
+
+All numeric fields use milliseconds for time and bytes for size. The type field contains the MIME type string from the response.
+
+
+DEVTOOLS THEME
+
+Match the user's DevTools color scheme in your panel or sidebar UI.
 
 ```typescript
 import { DevToolsTheme } from 'chrome-devtools-kit';
 
-// Apply CSS variables that match light or dark DevTools theme
+// Apply CSS variables and base body styles
 DevToolsTheme.apply();
-// Sets: --dt-bg, --dt-text, --dt-border, --dt-surface, --dt-primary
-// Also applies base body styles (font, background, color)
 
-// Query theme manually
+// Query the theme
 const theme = DevToolsTheme.getTheme(); // 'dark' | 'light' | 'default'
-const isDark = DevToolsTheme.isDark();
+const dark = DevToolsTheme.isDark();
 
-// React to theme changes
+// React to changes
 DevToolsTheme.onThemeChange((theme) => {
-  console.log('Theme changed to:', theme);
+  console.log('Switched to', theme);
 });
 ```
 
-## API
+apply() sets five CSS custom properties on the document root:
 
-### `DevToolsPanel`
+    --dt-bg        background color
+    --dt-text      text color
+    --dt-border    border color
+    --dt-surface   surface/card color
+    --dt-primary   accent/link color
 
-| Method | Signature | Description |
-| --- | --- | --- |
-| `create` | `(options: PanelOptions) => Promise<ExtensionPanel>` | Create a new DevTools panel. |
-| `createWithLifecycle` | `(options: PanelOptions & { onShow?, onHide? }) => Promise<ExtensionPanel>` | Create a panel with `onShown` and `onHidden` callbacks. |
-| `getInspectedTabId` | `() => number` | Get the tab ID of the page being inspected. |
-| `evaluate` | `<T>(expression: string) => Promise<T>` | Evaluate a JavaScript expression in the inspected page. |
+It also appends a minimal style element for body font, background, and color.
 
-**`PanelOptions`**: `{ title: string, pagePath: string, iconPath?: string }`
+Light values: #ffffff, #202124, #dadce0, #f8f9fa, #1a73e8
+Dark values: #242424, #e8eaed, #3c4043, #292929, #8ab4f8
 
-### `DevToolsSidebar`
 
-| Method | Signature | Description |
-| --- | --- | --- |
-| `create` | `(title: string) => Promise<ExtensionSidebarPane>` | Create a sidebar pane in the Elements panel. |
-| `createWithExpression` | `(title: string, expression: string) => Promise<ExtensionSidebarPane>` | Create a sidebar that evaluates an expression on the selected element. |
-| `createWithPage` | `(title: string, pagePath: string) => Promise<ExtensionSidebarPane>` | Create a sidebar that renders a custom HTML page. |
-| `createWithObject` | `(title: string, data: unknown) => Promise<ExtensionSidebarPane>` | Create a sidebar that displays an object tree. |
+CONTRIBUTING
 
-### `InspectedPage`
+1. Fork the repo
+2. Create a feature branch
+3. Make your changes and run npm test
+4. Open a pull request
 
-| Method | Signature | Description |
-| --- | --- | --- |
-| `eval` | `<T>(expression: string) => Promise<T>` | Evaluate JavaScript in the inspected page. |
-| `getURL` | `() => Promise<string>` | Get the page URL. |
-| `getTitle` | `() => Promise<string>` | Get the page title. |
-| `getDOMNodeCount` | `() => Promise<number>` | Get total number of DOM nodes. |
-| `getCookies` | `() => Promise<string>` | Get `document.cookie` string. |
-| `getLocalStorageSize` | `() => Promise<number>` | Get the byte length of `localStorage`. |
-| `getMetaTags` | `() => Promise<Array<{ name: string, content: string }>>` | Get all `<meta>` tag name/content pairs. |
-| `reload` | `(options?: { ignoreCache?: boolean, injectedScript?: string }) => void` | Reload the inspected page. |
-| `getTabId` | `() => number` | Get the inspected tab ID. |
+```bash
+npm run build    # compile TypeScript
+npm run dev      # watch mode
+npm test         # run tests
+npm run lint     # lint source
+```
 
-### `NetworkInterceptor`
 
-| Method | Signature | Description |
-| --- | --- | --- |
-| `start` | `() => void` | Begin capturing network requests via `devtools.network.onRequestFinished`. |
-| `onRequest` | `(callback: (entry: NetworkEntry) => void) => () => void` | Subscribe to new requests. Returns an unsubscribe function. |
-| `getEntries` | `() => NetworkEntry[]` | Get all captured entries. |
-| `filter` | `(predicate: (entry: NetworkEntry) => boolean) => NetworkEntry[]` | Filter entries with a custom predicate. |
-| `getByType` | `(type: string) => NetworkEntry[]` | Get entries whose MIME type contains the given string. |
-| `getSlow` | `(thresholdMs?: number) => NetworkEntry[]` | Get entries slower than the threshold (default: 1000ms). |
-| `getTotalSize` | `() => number` | Sum of all response sizes in bytes. |
-| `clear` | `() => void` | Clear all captured entries. |
+LICENSE
 
-**`NetworkEntry`**: `{ url: string, method: string, status: number, type: string, size: number, time: number, startedAt: number }`
+MIT. See the LICENSE file for details.
 
-### `DevToolsTheme`
-
-| Method | Signature | Description |
-| --- | --- | --- |
-| `getTheme` | `() => 'dark' \| 'light' \| 'default'` | Get the current DevTools theme. |
-| `isDark` | `() => boolean` | Check if the dark theme is active. |
-| `apply` | `() => void` | Apply CSS variables and base styles matching the current theme. |
-| `onThemeChange` | `(callback: (theme: string) => void) => void` | Listen for theme changes. |
-
-**CSS variables set by `apply()`**:
-
-| Variable | Light | Dark |
-| --- | --- | --- |
-| `--dt-bg` | `#ffffff` | `#242424` |
-| `--dt-text` | `#202124` | `#e8eaed` |
-| `--dt-border` | `#dadce0` | `#3c4043` |
-| `--dt-surface` | `#f8f9fa` | `#292929` |
-| `--dt-primary` | `#1a73e8` | `#8ab4f8` |
-
-## License
-
-MIT
-
-## See Also
-
-### Related Zovo Repositories
-
-- [chrome-extension-core](https://github.com/theluckystrike/chrome-extension-core) - Essential utilities for Chrome extension development
-- [chrome-extension-testing](https://github.com/theluckystrike/chrome-extension-testing) - Testing utilities for Chrome extensions
-- [awesome-chrome-devtools](https://github.com/theluckystrike/awesome-chrome-devtools) - Awesome tooling and resources in the Chrome DevTools ecosystem
-- [chrome-extension-starter-mv3](https://github.com/theluckystrike/chrome-extension-starter-mv3) - Production-ready Chrome extension starter
-
-### Zovo Chrome Extensions
-
-- [Zovo Tab Manager](https://chrome.google.com/webstore/detail/zovo-tab-manager) - Manage tabs efficiently
-- [Zovo Focus](https://chrome.google.com/webstore/detail/zovo-focus) - Block distractions
-
-Visit [zovo.one](https://zovo.one) for more information.
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
 
 ---
 
-Built by [Zovo](https://zovo.one)
+Built at zovo.one, the Chrome extension studio.
+github.com/theluckystrike/chrome-devtools-kit
